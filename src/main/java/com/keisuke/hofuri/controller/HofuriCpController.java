@@ -1,6 +1,7 @@
 package com.keisuke.hofuri.controller;
 
 import com.keisuke.hofuri.entity.CpInfo;
+import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.service.CpService;
 import java.text.ParseException;
 import java.util.List;
@@ -21,9 +22,9 @@ public class HofuriCpController {
   }
 
   @GetMapping("/get-cp-list")
-  public String getCpList(Model model) throws InterruptedException, ParseException {
-    List<CpInfo> cpList = cpService.fetchTodaysCpBalance();
-    model.addAttribute("cpList", cpList);
+  public String getCpList(Model model) throws InterruptedException, ParseException, RegistrationFailureException {
+    List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance();
+    cpService.registerBalances(cpInfos);
     return "cp";
   }
 }
