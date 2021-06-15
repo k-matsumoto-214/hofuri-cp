@@ -9,5 +9,4 @@ public class HofuriCpApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(HofuriCpApplication.class, args);
 	}
-
 }

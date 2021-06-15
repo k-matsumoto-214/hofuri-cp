@@ -14,7 +14,7 @@
 	<name>hofuri_cp</name>
 	<description>hofuri_cp for Spring Boot</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>15</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -47,14 +47,9 @@
 		    <version>1.13.1</version>
 		</dependency>
 		<dependency>
-		    <groupId>com.ui4j</groupId>
-		    <artifactId>ui4j-all</artifactId>
-		    <version>2.1.0</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.jfxtras</groupId>
-		    <artifactId>openjfx-monocle</artifactId>
-		    <version>1.8.0_20</version>
+				<groupId>org.seleniumhq.selenium</groupId>
+				<artifactId>selenium-java</artifactId>
+				<version>3.141.59</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
