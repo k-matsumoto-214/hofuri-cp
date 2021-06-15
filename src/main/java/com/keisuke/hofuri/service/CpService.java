@@ -14,14 +14,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CpService {
-
   /**
    * メソッド呼び出し時のCP残高を保振から取得します。
    * @return オブジェクトCpInfoの配列を返します。
    */
-  public List<Map<String, Object>> fetchTodaysCpBalance()
-      throws InterruptedException {
-
+  public List<Map<String, Object>> fetchTodaysCpBalance() throws InterruptedException {
     //結果返却用のリストを定義
     List<Map<String, Object>> result = new ArrayList<>();
 
@@ -53,8 +50,7 @@ public class CpService {
 
     // ページの更新を待つ 5秒でタイムアウト
     new WebDriverWait(driver, 5).until(
-        (ExpectedCondition<Boolean>)webDriver
-        -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
+        (ExpectedCondition<Boolean>) webDriver -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
 
     //発行体名の取得
     WebElement nameElement = driver.findElement(By.cssSelector(

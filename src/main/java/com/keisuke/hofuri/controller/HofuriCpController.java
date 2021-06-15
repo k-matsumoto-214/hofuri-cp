@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class HofuriCpController {
-
-  @Autowired CpService cpService;
+  @Autowired
+  CpService cpService;
 
   @GetMapping("/")
   public String index(Model model) {

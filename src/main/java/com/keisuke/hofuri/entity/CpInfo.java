@@ -10,9 +10,13 @@ import lombok.Data;
 @Entity
 @Data
 public class CpInfo {
-  @Id @GeneratedValue @Column(name = "company_id") private int id;
+  @Id
+  @GeneratedValue
+  @Column(name = "company_id")
+  private int id;
   private String name;
-  @Valid private String isinCode;
+  @Valid
+  private String isinCode;
   private int bondUnit;
   private int amount;
   private String issuerCode;
