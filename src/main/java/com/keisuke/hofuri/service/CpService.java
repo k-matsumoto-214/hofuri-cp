@@ -1,6 +1,7 @@
 package com.keisuke.hofuri.service;
 
 import com.keisuke.hofuri.entity.CpInfo;
+import com.keisuke.hofuri.exception.AlreadyFetcedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.repository.CpInfosDao;
 import java.text.NumberFormat;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -23,18 +25,11 @@ public class CpService {
   CpInfosDao cpInfosDao;
 
   /**
-   * メソッド呼び出し時のCP残高を保振から取得します。
-   * @return オブジェクトCpInfoの配列を返します
-   * @throws ParseException
+   * seleniumのchromeブラウザドライバを取得します。
+   * @return 
+   * @throws InterruptedException
    */
-  public List<CpInfo> fetchTodaysCpBalance() throws InterruptedException, ParseException {
-    // 結果返却用のリストを定義
-    List<CpInfo> result = new ArrayList<>();
-    // カンマ区切りの数字文字列を変換するためのフォーマッターを定義
-    NumberFormat numberFormater = NumberFormat.getInstance();
-    // 日付変換用のフォーマッターを定義
-    SimpleDateFormat dateFormater = new SimpleDateFormat("yyyy/MM/dd");
-
+  public WebDriver getChoromDriver() {
     // ChromeDriverのパスを指定
     System.setProperty("webdriver.chrome.driver",
                        "chromedriver/chromedriver.exe");
@@ -48,10 +43,27 @@ public class CpService {
     */
 
     // chromedriverの取得
-    WebDriver driver = new ChromeDriver();
+    return new ChromeDriver();
+  }
+
+  /**
+   * * メソッド呼び出し時のCP残高を保振から取得します。
+   * @param driver webドライバー
+   * @return オブジェクトCpInfoの配列を返します
+   * @throws InterruptedException
+   * @throws ParseException
+   * @throws AlreadyFetcedException　取得対象の日付の残高を取得済みの場合
+   */
+  public List<CpInfo> fetchTodaysCpBalance(WebDriver driver) throws InterruptedException, ParseException, AlreadyFetcedException {
+    // 結果返却用のリストを定義
+    List<CpInfo> result = new ArrayList<>();
+    // カンマ区切りの数字文字列を変換するためのフォーマッターを定義
+    NumberFormat numberFormater = NumberFormat.getInstance();
+    // 日付変換用のフォーマッターを定義
+    SimpleDateFormat dateFormater = new SimpleDateFormat("yyyy/MM/dd");
+
     //保振のページを開く
     driver.get("https://www.jasdec.com/reading/cpmei.php");
-    System.out.println("Page title is: " + driver.getTitle());
 
     Thread.sleep(1000);
 
@@ -65,53 +77,108 @@ public class CpService {
     new WebDriverWait(driver, 5).until(
         (ExpectedCondition<Boolean>) webDriver -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
 
-    Thread.sleep(1000);
+    // 残高更新日の取得
+    Date fetchedDate = dateFormater.parse(
+        driver.findElement(
+                  By.cssSelector(
+                      "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(5) > tbody > tr > td"))
+            .getText()
+            .substring(1, 11));
 
-    //CP情報の取得を開始
-    for (int repeatNumber = 0; repeatNumber < 50; repeatNumber++) {
-      //発行体名の取得
-      String name = driver.findElement(
-                              By.cssSelector(
-                                  "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
-                                  ") > tbody > tr > td > table > tbody > tr:nth-child(1) > td > span"))
-                        .getText();
-      // ISINCodeの取得
-      String isinCode = driver.findElement(
+    if (cpInfosDao.checkFetched(fetchedDate)) { // 取得対象の日付の残高をすでに取得している場合例外を投げる
+      throw new AlreadyFetcedException("同日の残高情報はすでに取得しています。");
+    }
+
+    /*
+    CP情報の取得を開始する
+    次へボタンがない or
+    ページ移動に失敗する or 
+    CP情報が50件に満たないページがある
+    場合処理を終了する
+    */
+    try {
+      //最初の10ページのセットのみ次へボタンの配置が異なるので分岐用のフラグ
+      boolean isFirstSet = true;
+      //　10ページ分CP情報取得を繰り返す
+      for (int pageNumber = 1; pageNumber <= 10;) {
+        //----------------------------ここからCP情報を50件取得する--------------------------------------------------------------------
+        for (int repeatNumber = 0; repeatNumber < 50; repeatNumber++) {
+          // 発行体名の取得
+          String name = driver.findElement(
                                   By.cssSelector(
                                       "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
-                                      ") > tbody > tr > td > table > tbody > tr:nth-child(7) > td:nth-child(2) > span"))
+                                      ") > tbody > tr > td > table > tbody > tr:nth-child(1) > td > span"))
                             .getText();
-      // 各社債の金額取得
-      int bondUnit = numberFormater.parse(
-                                       driver.findElement(
-                                                 By.cssSelector(
-                                                     "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
-                                                     ") > tbody > tr > td > table > tbody > tr:nth-child(7) > td:nth-child(4) > span"))
-                                           .getText())
-                         .intValue();
-      //発行総額の取得
-      int amount = numberFormater.parse(
-                                     driver.findElement(
-                                               By.cssSelector(
-                                                   "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
-                                                   ") > tbody > tr > td > table > tbody > tr:nth-child(8) > td:nth-child(2) > span"))
-                                         .getText())
-                       .intValue();
-      //発行者コードの取得
-      String issureCode = isinCode.substring(5, 8);
+          // ISINCodeの取得
+          String isinCode = driver.findElement(
+                                      By.cssSelector(
+                                          "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
+                                          ") > tbody > tr > td > table > tbody > tr:nth-child(7) > td:nth-child(2) > span"))
+                                .getText();
+          // 各社債の金額取得
+          int bondUnit = numberFormater.parse(
+                                           driver.findElement(
+                                                     By.cssSelector(
+                                                         "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
+                                                         ") > tbody > tr > td > table > tbody > tr:nth-child(7) > td:nth-child(4) > span"))
+                                               .getText())
+                             .intValue();
+          // 発行総額の取得
+          int amount = numberFormater.parse(
+                                         driver.findElement(
+                                                   By.cssSelector(
+                                                       "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(" + (repeatNumber + 8) +
+                                                       ") > tbody > tr > td > table > tbody > tr:nth-child(8) > td:nth-child(2) > span"))
+                                             .getText())
+                           .intValue();
+          // 発行者コードの取得
+          String issureCode = isinCode.substring(5, 8);
 
-      //残高更新日の取得
-      Date fetchedDate = dateFormater.parse(
-          driver.findElement(
-                    By.cssSelector(
-                        "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(5) > tbody > tr > td"))
-              .getText()
-              .substring(1, 11));
+          // CP情報のインスタンスを生成し結果配列に格納
+          CpInfo tempCpInfo = new CpInfo(null, name, isinCode, bondUnit, amount, issureCode, fetchedDate);
+          result.add(tempCpInfo);
+        }
+        //----------------------------ここまで CP情報を50件取得する--------------------------------------------------------------------
 
-      //CP情報のインスタンスを生成
-      CpInfo tempCpInfo = new CpInfo(null, name, isinCode, bondUnit, amount, issureCode, fetchedDate);
+        Thread.sleep(1000);
 
-      result.add(tempCpInfo);
+        if (pageNumber == 10) { // 現在10ページ目の場合次のセットへ移動する
+          pageNumber = 1;       // 現在ページ数をリセット
+          if (isFirstSet) {     //最初のセットの場合
+            driver.findElement(
+                      By.cssSelector(
+                          "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(6) > tbody > tr > td > a:nth-child(11)"))
+                .click();
+            isFirstSet = false; //最初のセット判定フラグをOFF
+          } else {              //最初のセットでない場合
+            driver.findElement(
+                      By.cssSelector(
+                          "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(6) > tbody > tr > td > a:nth-child(12)"))
+                .click();
+          }
+        } else {            // 現在10ページ目でない場合次のページへ移動する
+          if (isFirstSet) { //最初のセットの場合
+            driver.findElement(
+                      By.cssSelector(
+                          "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(6) > tbody > tr > td > a:nth-child(" + (pageNumber + 1) +
+                          ")"))
+                .click();
+          } else { //最初のセットでない場合
+            driver.findElement(
+                      By.cssSelector(
+                          "#MAIN > div:nth-child(3) > table > tbody > tr > td > font > table:nth-child(6) > tbody > tr > td > a:nth-child(" + (pageNumber + 2) +
+                          ")"))
+                .click();
+          }
+          pageNumber++; //ページナンバーをインクリメント
+        }
+        // ページの更新を待つ 5秒でタイムアウト
+        new WebDriverWait(driver, 5).until(
+            (ExpectedCondition<Boolean>) webDriver -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
+      }
+    } catch (NoSuchElementException e) {
+    } finally {
+      driver.close();
     }
     return result;
   }
