@@ -85,7 +85,8 @@ public class CpService {
             .getText()
             .substring(1, 11));
 
-    if (cpInfosDao.checkFetched(fetchedDate)) { // 取得対象の日付の残高をすでに取得している場合例外を投げる
+    // 取得対象の日付の残高をすでに取得している場合例外を投げる
+    if (cpInfosDao.checkFetched(fetchedDate)) {
       throw new AlreadyFetcedException("同日の残高情報はすでに取得しています。");
     }
 
