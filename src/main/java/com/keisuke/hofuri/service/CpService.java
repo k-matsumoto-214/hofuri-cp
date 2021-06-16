@@ -1,7 +1,7 @@
 package com.keisuke.hofuri.service;
 
 import com.keisuke.hofuri.entity.CpInfo;
-import com.keisuke.hofuri.exception.AlreadyFetcedException;
+import com.keisuke.hofuri.exception.AlreadyFetchedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.repository.CpInfosDao;
 import java.text.NumberFormat;
@@ -52,9 +52,9 @@ public class CpService {
    * @return オブジェクトCpInfoの配列を返します
    * @throws InterruptedException
    * @throws ParseException
-   * @throws AlreadyFetcedException　取得対象の日付の残高を取得済みの場合
+   * @throws AlreadyFetchedException　取得対象の日付の残高を取得済みの場合
    */
-  public List<CpInfo> fetchTodaysCpBalance(WebDriver driver) throws InterruptedException, ParseException, AlreadyFetcedException {
+  public List<CpInfo> fetchTodaysCpBalance(WebDriver driver) throws InterruptedException, ParseException, AlreadyFetchedException {
     // 結果返却用のリストを定義
     List<CpInfo> result = new ArrayList<>();
     // カンマ区切りの数字文字列を変換するためのフォーマッターを定義
@@ -88,7 +88,7 @@ public class CpService {
     // 取得対象の日付の残高をすでに取得している場合例外を投げる
     if (cpInfosDao.checkFetched(fetchedDate)) {
       driver.close();
-      throw new AlreadyFetcedException("同日の残高情報はすでに取得しています。");
+      throw new AlreadyFetchedException("同日の残高情報はすでに取得しています。");
     }
 
     /*

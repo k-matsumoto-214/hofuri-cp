@@ -1,7 +1,7 @@
 package com.keisuke.hofuri.controller;
 
 import com.keisuke.hofuri.entity.CpInfo;
-import com.keisuke.hofuri.exception.AlreadyFetcedException;
+import com.keisuke.hofuri.exception.AlreadyFetchedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.service.CpService;
 import java.text.ParseException;
@@ -24,7 +24,7 @@ public class HofuriCpController {
   }
 
   @GetMapping("/get-cp-list")
-  public String getCpList(Model model) throws InterruptedException, ParseException, RegistrationFailureException, AlreadyFetcedException {
+  public String getCpList(Model model) throws InterruptedException, ParseException, RegistrationFailureException, AlreadyFetchedException {
     WebDriver driver = cpService.getChoromDriver();
     List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance(driver);
     cpService.registerBalances(cpInfos);
