@@ -1,6 +1,6 @@
 package com.keisuke.hofuri.entity;
 
-import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,12 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CpInfo {
-  private Long id;
-  private String name;
-  private String isinCode;
-  private int bondUnit;
-  private int amount;
+// 各発行体の日ごとの発行量を表示するためのオブジェクト
+public class CpDailyAmount {
   private String issureCode;
-  private Date fetchedDate;
+  private String name;
+  private List<Integer> dailyAmounts;
 }

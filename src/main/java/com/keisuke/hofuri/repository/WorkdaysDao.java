@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class WorkdaysDao {
   @Autowired
-  NamedParameterJdbcTemplate jdbcTemplate;
+  private NamedParameterJdbcTemplate jdbcTemplate;
 
   public List<Date> fetchWorkdays() {
     String sql = "SELECT * FROM workdays WHERE workday < CURDATE()";

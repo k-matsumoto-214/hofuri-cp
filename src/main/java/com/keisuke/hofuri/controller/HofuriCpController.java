@@ -1,10 +1,7 @@
 package com.keisuke.hofuri.controller;
 
 import com.keisuke.hofuri.entity.CpInfo;
-import com.keisuke.hofuri.exception.AlreadyFetchedException;
-import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.service.CpService;
-import java.text.ParseException;
 import java.util.List;
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +21,18 @@ public class HofuriCpController {
   }
 
   @GetMapping("/get-cp-list")
-  public String getCpList(Model model) throws InterruptedException, ParseException, RegistrationFailureException, AlreadyFetchedException {
+  public String getCpList(Model model) throws Exception {
     WebDriver driver = cpService.getChoromDriver();
     List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance(driver);
-    cpService.registerBalances(cpInfos);
-    return "cp";
+    cpService.registerCpInfos(cpInfos);
+    model.addAttribute("message", "残高を取得しました。");
+    return "index";
   }
 
   @GetMapping("/get-date-list")
-  public String getDateList(Model model) {
-    cpService.fetchWorkdays();
+  public String fetchAllDailyAmounts(Model model) throws Exception {
+    model.addAttribute("workdays", cpService.fetchWorkdays());
+    model.addAttribute("cpDailyAmounts", cpService.fetchCpDailyAmounts());
     return "cp";
   }
 }

@@ -1,12 +1,12 @@
 package com.keisuke.hofuri.service;
 
+import com.keisuke.hofuri.entity.CpDailyAmount;
 import com.keisuke.hofuri.entity.CpInfo;
 import com.keisuke.hofuri.exception.AlreadyFetchedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.repository.CpInfosDao;
 import com.keisuke.hofuri.repository.WorkdaysDao;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,13 +19,14 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CpService {
   @Autowired
-  CpInfosDao cpInfosDao;
+  private CpInfosDao cpInfosDao;
   @Autowired
-  WorkdaysDao workdaysDao;
+  private WorkdaysDao workdaysDao;
 
   /**
    * seleniumのchromeブラウザドライバを取得します。
@@ -53,11 +54,9 @@ public class CpService {
    * * メソッド呼び出し時のCP残高を保振から取得します。
    * @param driver webドライバー
    * @return オブジェクトCpInfoの配列を返します
-   * @throws InterruptedException
-   * @throws ParseException
-   * @throws AlreadyFetchedException　取得対象の日付の残高を取得済みの場合
+   * @throws Exception
    */
-  public List<CpInfo> fetchTodaysCpBalance(WebDriver driver) throws InterruptedException, ParseException, AlreadyFetchedException {
+  public List<CpInfo> fetchTodaysCpBalance(WebDriver driver) throws Exception {
     // 結果返却用のリストを定義
     List<CpInfo> result = new ArrayList<>();
     // カンマ区切りの数字文字列を変換するためのフォーマッターを定義
@@ -181,6 +180,8 @@ public class CpService {
             (ExpectedCondition<Boolean>) webDriver -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
       }
     } catch (NoSuchElementException e) {
+    } catch (Exception e) {
+      throw new Exception("残高取得中に予期せぬ例外が発生しました。");
     } finally {
       driver.quit();
     }
@@ -192,7 +193,8 @@ public class CpService {
    * @param cpInfos CpInfo(残高情報)のリスト
    * @throws RegistrationFailureException DB登録に失敗した場合例外を投げます。
    */
-  public void registerBalances(List<CpInfo> cpInfos) throws RegistrationFailureException {
+  @Transactional(rollbackFor = Exception.class)
+  public void registerCpInfos(List<CpInfo> cpInfos) throws RegistrationFailureException {
     for (CpInfo cpInfo : cpInfos) {
       if (cpInfosDao.create(cpInfo) != 1) {
         throw new RegistrationFailureException("CP残高の登録に失敗しました。"
@@ -201,8 +203,31 @@ public class CpService {
     }
   }
 
-  public void fetchWorkdays() {
+  /**
+   * 営業日のリストを取得します
+   * @return 営業日のリスト
+   */
+  public List<Date> fetchWorkdays() throws Exception {
     List<Date> workdays = workdaysDao.fetchWorkdays();
-    System.out.println(workdays);
+    return workdays;
+  }
+
+  public void test() {
+    System.out.println(cpInfosDao.fetchDailyAmounts("20D"));
+  }
+
+  public List<CpDailyAmount> fetchCpDailyAmounts() throws Exception {
+    List<CpDailyAmount> result = new ArrayList<>();
+    List<String> issureCodes = cpInfosDao.fetchIssureCodes(); // 発行者コードをすべて取得
+    if (issureCodes == null) {
+      throw new Exception("発行者コードの取得に失敗しました。");
+    }
+    for (String issureCode : issureCodes) { // 各発行者コードごとに日ごとの残高、発行者情報を取得して結果配列に格納
+      CpInfo tempCpInfo = cpInfosDao.fetchIssureData(issureCode);
+      List<Integer> tempDailyAmounts = cpInfosDao.fetchDailyAmounts(issureCode);
+      CpDailyAmount tempCpDailyAmount = new CpDailyAmount(tempCpInfo.getIssureCode(), tempCpInfo.getName(), tempDailyAmounts);
+      result.add(tempCpDailyAmount);
+    }
+    return result;
   }
 }
