@@ -14,7 +14,7 @@ public class CpInfosDao {
   NamedParameterJdbcTemplate jdbcTemplate;
 
   public int create(CpInfo cpInfo) {
-    String sql = "insert into cp_infos values (:id, :name, :isinCode, :bondUnit, :amount, :issureCode, :fetchedDate)";
+    String sql = "INSERT INTO cp_infos VALUES (:id, :name, :isinCode, :bondUnit, :amount, :issureCode, :fetchedDate)";
     SqlParameterSource parameterSource = new MapSqlParameterSource("id", null)
                                              .addValue("name", cpInfo.getName())
                                              .addValue("isinCode", cpInfo.getIsinCode())
@@ -22,7 +22,6 @@ public class CpInfosDao {
                                              .addValue("amount", cpInfo.getAmount())
                                              .addValue("issureCode", cpInfo.getIssuerCode())
                                              .addValue("fetchedDate", cpInfo.getFetchedDate());
-
     return jdbcTemplate.update(sql, parameterSource);
   }
 
@@ -31,8 +30,8 @@ public class CpInfosDao {
    * @param fetchedDate チェックする日付
    * @return　取得済みであればtrue
    */
-  public boolean checkFetched(Date fetchedDate) {
-    String sql = "select count(id) from cp_infos where fetched_date = :fetchedDate";
+  public boolean isFetched(Date fetchedDate) {
+    String sql = "SELECT COUNT(id) FROM cp_infos WHERE fetched_date = :fetchedDate LIMIT 1";
     SqlParameterSource parameterSource = new MapSqlParameterSource("fetchedDate", fetchedDate);
     return jdbcTemplate.queryForObject(sql, parameterSource, Integer.class) != 0 ? true : false;
   }

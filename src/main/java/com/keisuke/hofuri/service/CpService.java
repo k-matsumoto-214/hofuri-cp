@@ -4,6 +4,7 @@ import com.keisuke.hofuri.entity.CpInfo;
 import com.keisuke.hofuri.exception.AlreadyFetchedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.repository.CpInfosDao;
+import com.keisuke.hofuri.repository.WorkdaysDao;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 public class CpService {
   @Autowired
   CpInfosDao cpInfosDao;
+  @Autowired
+  WorkdaysDao workdaysDao;
 
   /**
    * seleniumのchromeブラウザドライバを取得します。
@@ -86,7 +89,7 @@ public class CpService {
             .substring(1, 11));
 
     // 取得対象の日付の残高をすでに取得している場合例外を投げる
-    if (cpInfosDao.checkFetched(fetchedDate)) {
+    if (cpInfosDao.isFetched(fetchedDate)) {
       driver.quit();
       throw new AlreadyFetchedException("同日の残高情報はすでに取得しています。");
     }
@@ -196,5 +199,10 @@ public class CpService {
                                                + " : " + cpInfo.getIsinCode());
       }
     }
+  }
+
+  public void fetchWorkdays() {
+    List<Date> workdays = workdaysDao.fetchWorkdays();
+    System.out.println(workdays);
   }
 }

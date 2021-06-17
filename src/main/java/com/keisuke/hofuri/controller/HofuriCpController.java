@@ -30,4 +30,10 @@ public class HofuriCpController {
     cpService.registerBalances(cpInfos);
     return "cp";
   }
+
+  @GetMapping("/get-date-list")
+  public String getDateList(Model model) {
+    cpService.fetchWorkdays();
+    return "cp";
+  }
 }
