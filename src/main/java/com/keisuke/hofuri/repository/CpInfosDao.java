@@ -74,4 +74,27 @@ public class CpInfosDao {
     RowMapper<CpInfo> rowMapper = new BeanPropertyRowMapper<CpInfo>(CpInfo.class);
     return jdbcTemplate.queryForObject(sql, parameterSource, rowMapper);
   }
+
+  /**
+   * 日ごとの総発行残高を取得します。
+   * @return 6/15以降の各営業日における日ごとのCP発行残高 *残高が0の日はnullが入ります。
+   */
+  public List<Integer> fetchDailyTotalAmounts(Date updateDate) {
+    String sql = "SELECT grouped.amount "
+                 + "FROM (SELECT SUM(amount) AS amount, fetched_date FROM cp_infos GROUP BY fetched_date) AS grouped "
+                 + "RIGHT JOIN workdays ON grouped.fetched_date = workdays.workday "
+                 + "WHERE workdays.workday <= :updateDate";
+    SqlParameterSource parameterSource = new MapSqlParameterSource("updateDate", updateDate);
+    return jdbcTemplate.queryForList(sql, parameterSource, Integer.class);
+  }
+
+  /**
+   * 最新日付における発行残高がある発行者数を取得します。
+   * @return 最新日付における発行残高がある発行者数
+   */
+  public Integer countTodaysIssure(Date updateDate) {
+    String sql = "SELECT COUNT(*) FROM (SELECT issure_code FROM cp_infos WHERE fetched_date = :updateDate GROUP BY issure_code) AS sub";
+    SqlParameterSource parameterSource = new MapSqlParameterSource("updateDate", updateDate);
+    return jdbcTemplate.queryForObject(sql, parameterSource, Integer.class);
+  }
 }

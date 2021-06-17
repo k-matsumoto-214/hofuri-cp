@@ -22,7 +22,8 @@
           <tr th:each="cpDailyAmount : ${cpDailyAmounts}">
             <td scope="row" th:text="${cpDailyAmount.name}"></td>
             <span th:each="dailyAmount : ${cpDailyAmount.dailyAmounts}">
-              <td class="text-right" th:text="${#numbers.formatInteger(dailyAmount/100, 1, 'COMMA')}"></td>
+              <td class="text-right" th:if="${dailyAmount} != null" th:text="${#numbers.formatInteger(dailyAmount/100, 1, 'COMMA')}"></td>
+              <td class="text-right" th:unless="${dailyAmount} != null">-</td>
             </span>
           </tr>
         </table>
