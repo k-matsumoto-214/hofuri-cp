@@ -257,7 +257,7 @@ public class CpService {
    */
   public List<Map<String, Object>> createCpDailyTotalAmountGraphData(List<Date> workdays, List<Integer> cpDailyTotalAmounts) {
     List<Map<String, Object>> result = new ArrayList<>();
-    SimpleDateFormat formater = new SimpleDateFormat("yy/MM/dd");
+    SimpleDateFormat formater = new SimpleDateFormat("M/dd");
     for (int idx = 0; idx < workdays.size(); idx++) {
       Map<String, Object> tempMap = new LinkedHashMap<>();
       tempMap.put("day", formater.format(workdays.get(idx)));
