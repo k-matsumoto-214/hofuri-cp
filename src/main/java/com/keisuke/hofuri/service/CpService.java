@@ -87,7 +87,7 @@ public class CpService {
 
     // 取得対象の日付の残高をすでに取得している場合例外を投げる
     if (cpInfosDao.checkFetched(fetchedDate)) {
-      driver.close();
+      driver.quit();
       throw new AlreadyFetchedException("同日の残高情報はすでに取得しています。");
     }
 
@@ -179,7 +179,7 @@ public class CpService {
       }
     } catch (NoSuchElementException e) {
     } finally {
-      driver.close();
+      driver.quit();
     }
     return result;
   }
