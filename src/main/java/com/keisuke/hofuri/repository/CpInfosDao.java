@@ -3,7 +3,6 @@ package com.keisuke.hofuri.repository;
 import com.keisuke.hofuri.entity.CpInfo;
 import java.util.Date;
 import java.util.List;
-import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
