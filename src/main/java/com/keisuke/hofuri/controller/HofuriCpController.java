@@ -22,6 +22,8 @@ public class HofuriCpController {
     model.addAttribute("updateDate", cpService.fetchUpdateDate());
     model.addAttribute("todaysIssures", cpService.countTodaysIssure());
     model.addAttribute("cpDailyTotalAmountGraphData", cpService.createCpDailyTotalAmountGraphData(workdays, cpDailyTotalAmounts));
+    model.addAttribute("todaysAmount", cpService.fetchTodaysAmount());
+    model.addAttribute("top10Issures", cpService.fetchTop10Isuures());
     return "index";
   }
 

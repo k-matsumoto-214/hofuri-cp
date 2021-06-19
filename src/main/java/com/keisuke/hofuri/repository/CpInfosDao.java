@@ -3,6 +3,7 @@ package com.keisuke.hofuri.repository;
 import com.keisuke.hofuri.entity.CpInfo;
 import java.util.Date;
 import java.util.List;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -96,5 +97,28 @@ public class CpInfosDao {
     String sql = "SELECT COUNT(*) FROM (SELECT issure_code FROM cp_infos WHERE fetched_date = :updateDate GROUP BY issure_code) AS sub";
     SqlParameterSource parameterSource = new MapSqlParameterSource("updateDate", updateDate);
     return jdbcTemplate.queryForObject(sql, parameterSource, Integer.class);
+  }
+
+  /**
+   * 最新日付における発行残高を取得します。
+   * @return 残高がない場合はnullが返ります
+   */
+  public Integer fetchTodaysAmount(Date updateDate) {
+    String sql = "SELECT SUM(amount) FROM cp_infos WHERE fetched_date = :updateDate";
+    SqlParameterSource parameterSource = new MapSqlParameterSource("updateDate", updateDate);
+    return jdbcTemplate.queryForObject(sql, parameterSource, Integer.class);
+  }
+
+  /**
+   * 最新日付における発行残高Top10を取得します。
+   * @param updateDate
+   * @return 10件ない場合は10件未満のリストを返します。
+   */
+  public List<CpInfo> fetchTop10Isuures(Date updateDate) {
+    String sql = "SELECT name, issure_code, SUM(amount) as amount FROM cp_infos "
+                 + "WHERE fetched_date = :updateDate GROUP BY issure_code ORDER BY amount DESC LIMIT 10";
+    SqlParameterSource parameterSource = new MapSqlParameterSource("updateDate", updateDate);
+    RowMapper<CpInfo> rowMapper = new BeanPropertyRowMapper<CpInfo>(CpInfo.class);
+    return jdbcTemplate.query(sql, parameterSource, rowMapper);
   }
 }

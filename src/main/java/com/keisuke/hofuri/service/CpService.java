@@ -1,13 +1,5 @@
 package com.keisuke.hofuri.service;
 
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.keisuke.hofuri.entity.CpDailyAmount;
 import com.keisuke.hofuri.entity.CpInfo;
 import com.keisuke.hofuri.entity.Workday;
@@ -15,7 +7,13 @@ import com.keisuke.hofuri.exception.AlreadyFetchedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.repository.CpInfosDao;
 import com.keisuke.hofuri.repository.WorkdaysDao;
-
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -272,5 +270,27 @@ public class CpService {
    */
   public Date fetchUpdateDate() {
     return workdaysDao.fetchUpdatDate();
+  }
+
+  /**
+   * 最終更新日の発行残高を取得します
+   * @return 残高がない場合はnullが返ります
+   */
+  public Integer fetchTodaysAmount() {
+    return cpInfosDao.fetchTodaysAmount(this.fetchUpdateDate());
+  }
+
+  /**
+   * 最終更新日の発行残高TOP10を取得します。
+   * @return　CpInfoのリスト 10社取得できない場合は会社情報にnullを挿入します。
+   */
+  public List<CpInfo> fetchTop10Isuures() {
+    List<CpInfo> cpInfos = cpInfosDao.fetchTop10Isuures(this.fetchUpdateDate());
+    if (cpInfos.size() < 10) {
+      for (int i = 0; i < (10 - cpInfos.size()); i++) {
+        cpInfos.add(null);
+      }
+    }
+    return cpInfos;
   }
 }

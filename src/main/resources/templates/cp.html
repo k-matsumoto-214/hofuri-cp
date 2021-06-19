@@ -1,45 +1,174 @@
-<!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-    <title>Hello Thymeleaf</title>
-  </head>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
-  <body>
-    <div class="container">
-      
-      <div class="my-5">
-        <a href="/" class="btn btn-primary">戻る</a>
-        <h1 class="my-2">CP発行残高一覧 (億円)</h1>
-        <table class="table table-borderd table-striped">
-          <tr>
-            <th scope="col" class="issure-column">発行体名</th>
-            <span th:each="workday : ${workdays}">
-              <th scope="col" class="th-cp-list" th:text="${#dates.format(workday,'yy/MM/dd')}"></th> 
-            </span>
-          </tr>
-          <tr th:each="cpDailyAmount : ${cpDailyAmounts}">
-            <td scope="row" th:text="${cpDailyAmount.name}"></td>
-            <span th:each="dailyAmount : ${cpDailyAmount.dailyAmounts}">
-              <td class="text-right" th:if="${dailyAmount} != null" th:text="${#numbers.formatInteger(dailyAmount/100, 1, 'COMMA')}"></td>
-              <td class="text-right" th:unless="${dailyAmount} != null">-</td>
-            </span>
-          </tr>
-        </table>
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>CommercialPaper Statistics</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="css/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="css/timeline.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/startmin.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="css/morris.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<!-- jQuery -->
+<script src="js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="js/metisMenu.min.js"></script>
+
+<!-- Morris Charts JavaScript -->
+<script src="js/raphael.min.js"></script>
+<script src="js/morris.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="js/startmin.js"></script>
+<body>
+
+<div id="wrapper">
+  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="navbar-header">
+        <a class="navbar-brand" href="/">CommercialPaper Statistics</a>
+    </div>
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </button>
+    <ul class="nav navbar-right navbar-top-links"></ul>
+      <div class="navbar-default sidebar" role="navigation">
+        <div class="sidebar-nav navbar-collapse">
+          <ul class="nav" id="side-menu">
+            <li class="sidebar-search">
+              <form th:action="@{/search(keyword=${keyword})}" method="get">
+                <div class="input-group custom-search-form">
+                  <input type="text" class="form-control" name="keyword" placeholder="発行体名">
+                  <span class="input-group-btn">
+                      <button class="btn btn-primary" type="submit">
+                          <i class="fa fa-search"></i>
+                      </button>
+                  </span>
+                </div>
+              </form>
+            </li>
+            <li>
+                <a href="/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li>
+                <a href="/cp-list" class="active"><i class="fas fa-table"></i> Issued balance table</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="page-wrapper">
+      <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Issued balance table (100 million)</h1>
+            </div>
+        </div>
+
+        <!-- ... Your content goes here ... -->
+        <div class="panel panel-default">
+          <div class="panel-body">
+              <div class="table-responsive">
+                  <table class="table table-striped table-fixed">
+                      <thead>
+                        <tr>
+                          <th class="issure-column">Issure</th>
+                          <span th:each="workday : ${workdays}">
+                            <th class="th-cp-list" th:text="${#dates.format(workday,'yy/MM/dd')}"></th> 
+                          </span>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          <tr th:each="cpDailyAmount : ${cpDailyAmounts}">
+                            <td th:text="${cpDailyAmount.name}"></td>
+                            <span th:each="dailyAmount : ${cpDailyAmount.dailyAmounts}">
+                              <td class="text-right" th:if="${dailyAmount} != null" th:text="${#numbers.formatInteger(dailyAmount/100, 1, 'COMMA')}"></td>
+                              <td class="text-right" th:if="${dailyAmount} == null">-</td>
+                            </span>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
+              <!-- /.table-responsive -->
+            </div>
+            <!-- /.panel-body -->
+        </div>
       </div>
     </div>
-  </body>
+</div>
+
+</body>
+  <!-------------------------- LICENSE -------------------------------------
+  The MIT License (MIT)
+  
+  Copyright (c) 2013-2017 Christian Neff / Blackrock Digital LLC
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+  ---------------------------------------------------------------------------->
 </html>
 
 <style scoped>
-  .issure-column {
-    width: 25rem;
-  }
-  .text-right {
-    text-align: right;
-  }
-  .th-cp-list {
-    text-align: center;
-  }
+.text-right {
+  text-align: right;
+}
+.th-cp-list {
+  text-align: center;
+}
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+  padding: 4px;
+}
+.table {
+  margin-bottom: 0px;
+}
+.table-responsive {
+  margin-bottom: 0px;
+}
 </style>
