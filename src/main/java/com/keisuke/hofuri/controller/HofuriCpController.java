@@ -22,7 +22,6 @@ public class HofuriCpController {
     model.addAttribute("updateDate", cpService.fetchUpdateDate());
     model.addAttribute("todaysIssures", cpService.countTodaysIssure());
     model.addAttribute("cpDailyTotalAmountGraphData", cpService.createCpDailyTotalAmountGraphData(workdays, cpDailyTotalAmounts));
-    System.out.println(cpService.createCpDailyTotalAmountGraphData(workdays, cpDailyTotalAmounts));
     return "index";
   }
 
@@ -32,6 +31,7 @@ public class HofuriCpController {
     List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance(driver);
     cpService.registerCpInfos(cpInfos);
     model.addAttribute("message", "残高を取得しました。");
+    System.out.println("終了しました。");
     return "index";
   }
 

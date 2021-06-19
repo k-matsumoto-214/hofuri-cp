@@ -48,7 +48,7 @@ public class CpInfosDao {
     String sql = "SELECT grouped.amount "
                  + "FROM (SELECT SUM(amount) AS amount, fetched_date FROM cp_infos where issure_code = :issureCode GROUP BY fetched_date) AS grouped "
                  + "RIGHT JOIN workdays ON grouped.fetched_date = workdays.workday "
-                 + "WHERE workdays.workday < CURDATE()";
+                 + "WHERE workdays.fetched_flg = true";
     SqlParameterSource parameterSource = new MapSqlParameterSource("issureCode", issureCode);
     return jdbcTemplate.queryForList(sql, parameterSource, Integer.class);
   }

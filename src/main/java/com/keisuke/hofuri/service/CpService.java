@@ -1,12 +1,5 @@
 package com.keisuke.hofuri.service;
 
-import com.keisuke.hofuri.entity.CpDailyAmount;
-import com.keisuke.hofuri.entity.CpInfo;
-import com.keisuke.hofuri.entity.Workday;
-import com.keisuke.hofuri.exception.AlreadyFetchedException;
-import com.keisuke.hofuri.exception.RegistrationFailureException;
-import com.keisuke.hofuri.repository.CpInfosDao;
-import com.keisuke.hofuri.repository.WorkdaysDao;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,10 +7,20 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.keisuke.hofuri.entity.CpDailyAmount;
+import com.keisuke.hofuri.entity.CpInfo;
+import com.keisuke.hofuri.entity.Workday;
+import com.keisuke.hofuri.exception.AlreadyFetchedException;
+import com.keisuke.hofuri.exception.RegistrationFailureException;
+import com.keisuke.hofuri.repository.CpInfosDao;
+import com.keisuke.hofuri.repository.WorkdaysDao;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +44,12 @@ public class CpService {
     System.setProperty("webdriver.chrome.driver",
                        "chromedriver/chromedriver.exe");
 
-    /*ヘッドレスの場合
     // headlessの設定
     ChromeOptions options = new ChromeOptions();
     options.addArguments("--headless");
-    // chromedriverの取得
-    WebDriver driver = new ChromeDriver(options);
-    */
 
     // chromedriverの取得
-    return new ChromeDriver();
+    return new ChromeDriver(options);
   }
 
   /**
@@ -250,7 +249,7 @@ public class CpService {
   }
 
   /**
-   * 営業日リストと残高リストからグラフ描画用データを作成します。
+   * 営業日リストと残高リストから日時残高グラフ描画用データを作成します。
    * @param workdays
    * @param cpDailyTotalAmounts
    * @return グラフ描画用のMapのList
