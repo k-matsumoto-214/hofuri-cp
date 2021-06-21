@@ -2,6 +2,7 @@ package com.keisuke.hofuri.service;
 
 import com.keisuke.hofuri.entity.CpDailyAmount;
 import com.keisuke.hofuri.entity.CpInfo;
+import com.keisuke.hofuri.entity.Workday;
 import com.keisuke.hofuri.exception.AlreadyFetchedException;
 import com.keisuke.hofuri.exception.RegistrationFailureException;
 import com.keisuke.hofuri.repository.CpInfosDao;
@@ -10,11 +11,14 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,20 +38,20 @@ public class CpService {
    * @throws InterruptedException
    */
   public WebDriver getChoromDriver() {
-    // ChromeDriverのパスを指定
-    System.setProperty("webdriver.chrome.driver",
-                       "chromedriver/chromedriver.exe");
+    // // ChromeDriverのパスを指定(デプロイ用)
+    // System.setProperty("webdriver.chrome.driver",
+    //                    "/home/kei/chromedriver/chromedriver");
 
-    /*ヘッドレスの場合
+    // ChromeDriverのパスを指定(開発用)
+    System.setProperty("webdriver.chrome.driver",
+                       "/chromedriver/chromedriver.exe");
+
     // headlessの設定
     ChromeOptions options = new ChromeOptions();
     options.addArguments("--headless");
-    // chromedriverの取得
-    WebDriver driver = new ChromeDriver(options);
-    */
 
     // chromedriverの取得
-    return new ChromeDriver();
+    return new ChromeDriver(options);
   }
 
   /**
@@ -189,31 +193,46 @@ public class CpService {
   }
 
   /**
-   * リストで渡した残高情報をDBに登録します。
+   * リストで渡した残高情報をDBに登録します。その後営業日マスタの取得フラグをONにします。
    * @param cpInfos CpInfo(残高情報)のリスト
-   * @throws RegistrationFailureException DB登録に失敗した場合例外を投げます。
+   * @throws Exception
    */
   @Transactional(rollbackFor = Exception.class)
-  public void registerCpInfos(List<CpInfo> cpInfos) throws RegistrationFailureException {
+  public void registerCpInfos(List<CpInfo> cpInfos) throws Exception {
     for (CpInfo cpInfo : cpInfos) {
       if (cpInfosDao.create(cpInfo) != 1) {
         throw new RegistrationFailureException("CP残高の登録に失敗しました。"
                                                + " : " + cpInfo.getIsinCode());
       }
     }
+    // フラグをONにする処理
+    Date fetchedDate = cpInfos.get(0).getFetchedDate();
+    Workday workday = new Workday(fetchedDate, true);
+    this.updateWorkday(workday);
   }
 
   /**
-   * 営業日のリストを取得します
+   * 最終更新日までの営業日のリストを取得します
    * @return 営業日のリスト
    */
   public List<Date> fetchWorkdays() throws Exception {
-    List<Date> workdays = workdaysDao.fetchWorkdays();
+    List<Date> workdays = workdaysDao.fetchWorkdays(this.fetchUpdateDate());
     return workdays;
   }
 
-  public void test() {
-    System.out.println(cpInfosDao.fetchDailyAmounts("20D"));
+  @Transactional(rollbackFor = Exception.class)
+  public void updateWorkday(Workday workday) throws Exception {
+    if (workdaysDao.update(workday) != 1) {
+      throw new Exception("営業日データの更新に失敗しました。");
+    }
+  }
+
+  public List<Integer> fetchDailyTotalAmounts() {
+    return cpInfosDao.fetchDailyTotalAmounts(this.fetchUpdateDate());
+  }
+
+  public Integer countTodaysIssure() {
+    return cpInfosDao.countTodaysIssure(this.fetchUpdateDate());
   }
 
   public List<CpDailyAmount> fetchCpDailyAmounts() throws Exception {
@@ -229,5 +248,53 @@ public class CpService {
       result.add(tempCpDailyAmount);
     }
     return result;
+  }
+
+  /**
+   * 営業日リストと残高リストから日時残高グラフ描画用データを作成します。
+   * @param workdays
+   * @param cpDailyTotalAmounts
+   * @return グラフ描画用のMapのList
+   */
+  public List<Map<String, Object>> createCpDailyTotalAmountGraphData(List<Date> workdays, List<Integer> cpDailyTotalAmounts) {
+    List<Map<String, Object>> result = new ArrayList<>();
+    SimpleDateFormat formater = new SimpleDateFormat("M/dd");
+    for (int idx = 0; idx < workdays.size(); idx++) {
+      Map<String, Object> tempMap = new LinkedHashMap<>();
+      tempMap.put("day", formater.format(workdays.get(idx)));
+      tempMap.put("amount", cpDailyTotalAmounts.get(idx));
+      result.add(tempMap);
+    }
+    return result;
+  }
+
+  /**
+   * 残高の最新取得日を取得します
+   * @return 最後に残高を取得した日付
+   */
+  public Date fetchUpdateDate() {
+    return workdaysDao.fetchUpdatDate();
+  }
+
+  /**
+   * 最終更新日の発行残高を取得します
+   * @return 残高がない場合はnullが返ります
+   */
+  public Integer fetchTodaysAmount() {
+    return cpInfosDao.fetchTodaysAmount(this.fetchUpdateDate());
+  }
+
+  /**
+   * 最終更新日の発行残高TOP10を取得します。
+   * @return　CpInfoのリスト 10社取得できない場合は会社情報にnullを挿入します。
+   */
+  public List<CpInfo> fetchTop10Isuures() {
+    List<CpInfo> cpInfos = cpInfosDao.fetchTop10Isuures(this.fetchUpdateDate());
+    if (cpInfos.size() < 10) {
+      for (int i = 0; i < (10 - cpInfos.size()); i++) {
+        cpInfos.add(null);
+      }
+    }
+    return cpInfos;
   }
 }

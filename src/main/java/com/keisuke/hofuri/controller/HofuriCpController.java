@@ -2,6 +2,7 @@ package com.keisuke.hofuri.controller;
 
 import com.keisuke.hofuri.entity.CpInfo;
 import com.keisuke.hofuri.service.CpService;
+import java.util.Date;
 import java.util.List;
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,14 @@ public class HofuriCpController {
   CpService cpService;
 
   @GetMapping("/")
-  public String index(Model model) {
-    model.addAttribute("test", "hello hofuri!!");
+  public String index(Model model) throws Exception {
+    List<Date> workdays = cpService.fetchWorkdays();
+    List<Integer> cpDailyTotalAmounts = cpService.fetchDailyTotalAmounts();
+    model.addAttribute("updateDate", cpService.fetchUpdateDate());
+    model.addAttribute("todaysIssures", cpService.countTodaysIssure());
+    model.addAttribute("cpDailyTotalAmountGraphData", cpService.createCpDailyTotalAmountGraphData(workdays, cpDailyTotalAmounts));
+    model.addAttribute("todaysAmount", cpService.fetchTodaysAmount());
+    model.addAttribute("top10Issures", cpService.fetchTop10Isuures());
     return "index";
   }
 
@@ -26,10 +33,11 @@ public class HofuriCpController {
     List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance(driver);
     cpService.registerCpInfos(cpInfos);
     model.addAttribute("message", "残高を取得しました。");
+    System.out.println("終了しました。");
     return "index";
   }
 
-  @GetMapping("/get-date-list")
+  @GetMapping("/cp-list")
   public String fetchAllDailyAmounts(Model model) throws Exception {
     model.addAttribute("workdays", cpService.fetchWorkdays());
     model.addAttribute("cpDailyAmounts", cpService.fetchCpDailyAmounts());
