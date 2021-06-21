@@ -115,7 +115,7 @@ public class CpInfosDao {
    */
   public List<CpInfo> fetchTop10Isuures(Date updateDate) {
     String sql = "SELECT name, issure_code, SUM(amount) as amount FROM cp_infos "
-                 + "WHERE fetched_date = :updateDate GROUP BY issure_code ORDER BY amount DESC LIMIT 10";
+                 + "WHERE fetched_date = :updateDate GROUP BY name, issure_code ORDER BY amount DESC LIMIT 10";
     SqlParameterSource parameterSource = new MapSqlParameterSource("updateDate", updateDate);
     RowMapper<CpInfo> rowMapper = new BeanPropertyRowMapper<CpInfo>(CpInfo.class);
     return jdbcTemplate.query(sql, parameterSource, rowMapper);

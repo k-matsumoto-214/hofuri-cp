@@ -38,9 +38,13 @@ public class CpService {
    * @throws InterruptedException
    */
   public WebDriver getChoromDriver() {
-    // ChromeDriverのパスを指定
+    // // ChromeDriverのパスを指定(デプロイ用)
+    // System.setProperty("webdriver.chrome.driver",
+    //                    "/home/kei/chromedriver/chromedriver");
+
+    // ChromeDriverのパスを指定(開発用)
     System.setProperty("webdriver.chrome.driver",
-                       "chromedriver/chromedriver.exe");
+                       "/chromedriver/chromedriver.exe");
 
     // headlessの設定
     ChromeOptions options = new ChromeOptions();
