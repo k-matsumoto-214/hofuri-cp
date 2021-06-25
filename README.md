@@ -1,4 +1,4 @@
-<p>保振からcpの発行残高を取得して記録します。</p>
+<p>保振(https://www.jasdec.com/reading/cpmei.php)からcpの発行残高を取得して記録します。</p>
 <p>集計結果を確認できます。</p>
 
 ![CommercialPaper ](https://user-images.githubusercontent.com/85728967/122786711-8d9faa00-d2ef-11eb-858e-0fced3acb136.png)
