@@ -1,5 +1,5 @@
 
-<p>URL https://keisukematsumoto.com </p>
+<h2>URL https://keisukematsumoto.com </h2>
 <p>保振(https://www.jasdec.com/reading/cpmei.php)
   からcpの発行残高を取得して記録します。</p>
 <p>集計結果を確認できます。</p>
