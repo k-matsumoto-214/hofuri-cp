@@ -27,15 +27,16 @@ public class HofuriCpController {
     return "index";
   }
 
-  @GetMapping("/get-cp-list")
-  public String getCpList(Model model) throws Exception {
-    WebDriver driver = cpService.getChoromDriver();
-    List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance(driver);
-    cpService.registerCpInfos(cpInfos);
-    model.addAttribute("message", "残高を取得しました。");
-    System.out.println("終了しました。");
-    return "index";
-  }
+  // // batchの処理が失敗した時用
+  // @GetMapping("/get-cp-list")
+  // public String getCpList(Model model) throws Exception {
+  //   WebDriver driver = cpService.getChoromDriver();
+  //   List<CpInfo> cpInfos = cpService.fetchTodaysCpBalance(driver);
+  //   cpService.registerCpInfos(cpInfos);
+  //   model.addAttribute("message", "残高を取得しました。");
+  //   System.out.println("終了しました。");
+  //   return "index";
+  // }
 
   @GetMapping("/cp-list")
   public String fetchAllDailyAmounts(Model model) throws Exception {
