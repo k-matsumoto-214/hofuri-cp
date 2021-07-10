@@ -1,10 +1,8 @@
 package com.keisuke.hofuri.controller;
 
-import com.keisuke.hofuri.entity.CpInfo;
 import com.keisuke.hofuri.service.CpService;
 import java.util.Date;
 import java.util.List;
-import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
