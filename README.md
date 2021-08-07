@@ -1,5 +1,4 @@
 
-<h2>URL https://keisukematsumoto.com </br> username: keisuke </br> password: baseball</h2>
 
 <p>保振(https://www.jasdec.com/reading/cpmei.php)
   からcpの発行残高を取得して記録します。</p>
