@@ -1,4 +1,4 @@
-<h1>公開停止中<h1>
+<h1>公開停止中</h1>
 
 <p>保振(https://www.jasdec.com/reading/cpmei.php)
   からcpの発行残高を取得して記録します。</p>
