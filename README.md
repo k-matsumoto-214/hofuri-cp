@@ -1,6 +1,11 @@
-<h1>htpps://cp.kesiukematsumoto.com</h1>
-id: keisuke
-pass: baseball
+
+# CP残高記録アプリ(https://cp.keisukematsumoto.com)  
+### accountId: keisuke
+### password: baseball　　　　
+
+　　
+  　
+  
 
 <p>保振(https://www.jasdec.com/reading/cpmei.php)
   からcpの発行残高を取得して記録します。</p>
