@@ -120,4 +120,19 @@ public class CpInfosDao {
     RowMapper<CpInfo> rowMapper = new BeanPropertyRowMapper<CpInfo>(CpInfo.class);
     return jdbcTemplate.query(sql, parameterSource, rowMapper);
   }
+
+  /**
+   * 該当日時のデータを削除します
+   * @param date 削除したい日付
+   * @return 削除件数
+   */
+  public int deleteCpInfosByDate(Date date) {
+    String sql = "DELETE from cp_infos WHERE fetched_date = :date";
+    String sql2 = "UPDATE workdays SET fetched_flg = false WHERE workday = :date";
+    SqlParameterSource parameterSource = new MapSqlParameterSource("date", date);
+    SqlParameterSource parameterSource2 = new MapSqlParameterSource("date", date);
+    
+    jdbcTemplate.update(sql2, parameterSource2);
+    return jdbcTemplate.update(sql, parameterSource);
+  }
 }

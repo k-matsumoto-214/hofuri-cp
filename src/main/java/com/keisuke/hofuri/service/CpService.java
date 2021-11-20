@@ -1,12 +1,5 @@
 package com.keisuke.hofuri.service;
 
-import com.keisuke.hofuri.entity.CpDailyAmount;
-import com.keisuke.hofuri.entity.CpInfo;
-import com.keisuke.hofuri.entity.Workday;
-import com.keisuke.hofuri.exception.AlreadyFetchedException;
-import com.keisuke.hofuri.exception.RegistrationFailureException;
-import com.keisuke.hofuri.repository.CpInfosDao;
-import com.keisuke.hofuri.repository.WorkdaysDao;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,6 +7,14 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.keisuke.hofuri.entity.CpDailyAmount;
+import com.keisuke.hofuri.entity.CpInfo;
+import com.keisuke.hofuri.entity.Workday;
+import com.keisuke.hofuri.exception.RegistrationFailureException;
+import com.keisuke.hofuri.repository.CpInfosDao;
+import com.keisuke.hofuri.repository.WorkdaysDao;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -38,13 +39,13 @@ public class CpService {
    * @throws InterruptedException
    */
   public WebDriver getChoromDriver() {
-    // // ChromeDriverのパスを指定(デプロイ用)
-    // System.setProperty("webdriver.chrome.driver",
-    //                    "/home/kei/chromedriver/chromedriver");
-
-    // ChromeDriverのパスを指定(開発用)
+    // ChromeDriverのパスを指定(デプロイ用)
     System.setProperty("webdriver.chrome.driver",
-                       "/chromedriver/chromedriver.exe");
+                       "/home/kei/chromedriver/chromedriver");
+
+    // // ChromeDriverのパスを指定(開発用)
+    // System.setProperty("webdriver.chrome.driver",
+    //                    "/chromedriver/chromedriver.exe");
 
     // headlessの設定
     ChromeOptions options = new ChromeOptions();
@@ -56,10 +57,11 @@ public class CpService {
 
   /**
    * * メソッド呼び出し時のCP残高を保振から取得します。
-   * @param driver webドライバー
+   * @param driver webドライバーß
    * @return オブジェクトCpInfoの配列を返します
    * @throws Exception
    */
+  @Transactional(rollbackFor = Exception.class)
   public List<CpInfo> fetchTodaysCpBalance(WebDriver driver) throws Exception {
     // 結果返却用のリストを定義
     List<CpInfo> result = new ArrayList<>();
@@ -71,7 +73,7 @@ public class CpService {
     //保振のページを開く
     driver.get("https://www.jasdec.com/reading/cpmei.php");
 
-    Thread.sleep(1000);
+    Thread.sleep(30000);
 
     //検索ボタンをクリック
     driver
@@ -80,7 +82,7 @@ public class CpService {
         .click();
 
     // ページの更新を待つ 5秒でタイムアウト
-    new WebDriverWait(driver, 5).until(
+    new WebDriverWait(driver, 30).until(
         (ExpectedCondition<Boolean>) webDriver -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
 
     // 残高更新日の取得
@@ -91,10 +93,10 @@ public class CpService {
             .getText()
             .substring(1, 11));
 
-    // 取得対象の日付の残高をすでに取得している場合例外を投げる
+    // 取得対象の日付の残高をすでに取得している場合一度該当日のデータを削除する
     if (cpInfosDao.isFetched(fetchedDate)) {
-      driver.quit();
-      throw new AlreadyFetchedException("同日の残高情報はすでに取得しています。");
+      System.out.println("同日の残高情報はすでに取得しています。");
+      System.out.println(cpInfosDao.deleteCpInfosByDate(fetchedDate) + "件の残高情報を削除しました。");
     }
 
     /*
@@ -180,10 +182,11 @@ public class CpService {
           pageNumber++; //ページナンバーをインクリメント
         }
         // ページの更新を待つ 5秒でタイムアウト
-        new WebDriverWait(driver, 5).until(
+        new WebDriverWait(driver, 30).until(
             (ExpectedCondition<Boolean>) webDriver -> webDriver.getTitle().startsWith("銘柄公示情報 （短期社債等）検索"));
       }
     } catch (NoSuchElementException e) {
+      System.out.println("取得件数は" + result.size() + "件です");
     } catch (Exception e) {
       throw new Exception("残高取得中に予期せぬ例外が発生しました。");
     } finally {
